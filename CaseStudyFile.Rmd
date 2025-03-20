@@ -1,0 +1,213 @@
+---
+title: "Bellabeat Case Study"
+author: Sharon Viers
+output: html_document
+date: "2025-03-18"
+---
+
+### Statement of Business task:
+#### Bellabeat, a high-tech manufacturer of health-focused products for women
+#### wants to identify new growth opportunities for their smart device. The analysis  
+#### seeks to answer the following stakeholder questions:
+#### - What are some of the trends in smart device usage?
+#### - How could these trends apply to Bellabeat customers?
+#### - How could these trends help influence Bellabeat marketing straegy?
+
+### Data source
+#### FitBit Fitness Tracker Data - https://www.kaggle.com/datasets/arashnic/fitbit
+
+
+### Install packages
+```{r install packages}
+install.packages("tidyverse")
+install.packages("skimr")
+install.packages("janitor")
+install.packages("esquisse")
+library(tidyverse)
+library(skimr)
+library(janitor)
+library(esquisse)
+```
+
+### Create dataframes
+``` {r create datatframes}
+library(readr)
+daily_activity <- read_csv("CaseStudy/dailyActivity_merged.csv")
+sleep_day <- read_csv("CaseStudy/sleepDay_merged.csv")
+daily_intensity <- read_csv("CaseStudy/dailyIntensities_merged.csv")
+daily_steps <- read_csv("CaseStudy/dailySteps_merged.csv")
+heart_rate <- read_csv("CaseStudy/heartrate_seconds_merged.csv")
+```
+### Add NA to blank cells
+```{r}
+daily_activity[daily_activity == ""] <- NA
+sleep_day[sleep_day == ""] <- NA
+daily_intensity[daily_intensity == ""] <- NA
+daily_steps[daily_steps == ""] <- NA
+heart_rate[heart_rate == ""] <- NA
+```
+
+### Clean data by omitting NA
+```{r}
+daily_activity <- na.omit(daily_activity)
+sleep_day <- na.omit(sleep_day)
+daily_intensity <- na.omit(daily_intensity)
+daily_steps <- na.omit(daily_steps)
+heart_rate <- na.omit(heart_rate)
+```
+
+### Check columns and rows associated with data
+``` {r columns and rows}
+head(daily_activity)
+head(sleep_day)
+head(daily_intensity)
+head(daily_steps)
+head(heart_rate)
+
+colnames(daily_activity)
+colnames(sleep_day)
+colnames(daily_intensity)
+colnames(daily_steps)
+colnames(heart_rate)
+```
+
+
+### Check for unique participants in all data by ID
+``` {r unique participants}
+n_distinct(daily_activity$Id)
+n_distinct(daily_intensity$Id)
+n_distinct(daily_steps$Id)
+n_distinct(heart_rate$Id)
+n_distinct(sleep_day$Id)
+```
+### Summary statistics
+``` {r daily activity statistics}
+daily_activity %>%
+  select(TotalSteps,
+         TotalDistance,
+         SedentaryMinutes) %>%
+  summary()
+```
+
+```{r Summary statistics of daily intensities}
+daily_intensity %>%
+    select(SedentaryActiveDistance,
+           LightActiveDistance,
+           ModeratelyActiveDistance,
+           VeryActiveDistance) %>%
+  summary()
+```
+
+```{r statistics of daily steps}
+daily_steps %>%
+  select(StepTotal)%>%
+  summary()
+```
+
+```{r statistics of heart rate}
+heart_rate %>%
+  select(Value)%>%
+  summary()
+
+```
+
+```{r statistics of sleep day}
+sleep_day%>%
+  select(TotalMinutesAsleep,
+         TotalTimeInBed)%>%
+  summary()
+
+```
+
+``` {r activity}
+ggplot(daily_activity) +
+ aes(x = TotalDistance, y = Calories, colour = Calories) +
+ geom_jitter() +
+ geom_jitter(aes(x = TotalDistance, 
+ y = Calories)) +
+ scale_color_viridis_c(option = "viridis", direction = 1) +
+  labs(
+    x = "Total Distance",
+    y = "Calories",
+    title = "Distance in Miles vs. Calories Burned"
+  ) 
+ theme_minimal()
+```
+
+```{r steps vs distance}
+ggplot(daily_activity) +
+  aes(
+    x = TotalSteps,
+    y = TotalDistance,
+    colour = TotalDistance
+  ) +
+  geom_point(shape = "diamond") +
+  scale_color_viridis_c(option = "plasma", direction = 1) +
+  labs(
+    x = "Total Steps",
+    y = "Total Distance",
+    title = "Steps per Day vs. Distance in Miles"
+  ) +
+  theme_minimal()
+```
+
+```{r very active users}
+ggplot(daily_intensity) +
+  aes(x = VeryActiveMinutes, y = VeryActiveDistance) +
+  geom_step(linewidth = 1.75, colour = "#FF8C00") +
+  labs(
+    title = "Very Active Users",
+    subtitle = "Minutes vs. Distance"
+  ) +
+  theme_minimal()
+```
+
+```{r steps vs. sedentary minutes}
+ggplot(daily_activity) +
+  aes(x = TotalSteps, y = SedentaryMinutes) +
+  geom_smooth(span = 0.31, se = TRUE, colour = "#319827") +
+  labs(title = "Total Steps vs Sedentary Minutes") +
+  theme_minimal()
+```
+
+```
+```{r minutes asleep vs time in bed}
+ggplot(sleep_day) +
+  aes(
+    x = TotalMinutesAsleep,
+    y = TotalTimeInBed,
+    colour = TotalMinutesAsleep
+  ) +
+  geom_point(size = 2.9, shape = "diamond") +
+  scale_color_viridis_c(option = "inferno", direction = 1) +
+  labs(title = "Minutes Asleep vs. Time in Bed") +
+  theme_minimal()
+```
+
+``` {r write new combined_data file}
+library(tidyverse)
+sleep_day <- read_csv("CaseStudy/sleepDay_merged.csv")
+daily_activity <- read_csv("CaseStudy/dailyActivity_merged.csv")
+combined_data <- full_join(sleep_day, daily_activity, by = "Id")
+write_csv(combined_data, "CaseStudy/combined_data.csv")
+list.files("CaseStudy")
+```
+
+```{r }
+ggplot(combined_data) +
+  aes(
+    x = TotalMinutesAsleep,
+    y = TotalSteps,
+    colour = Calories
+  ) +
+  geom_jitter() +
+  scale_color_distiller(palette = "Paired", direction = 1) +
+  labs(
+  x = ("Total Minutes Asleep"),
+  y = ("Total Steps"),
+  title = ("Total Minutes Asleep vs. Total Steps")
+)
+  theme_minimal()
+```
+
+
